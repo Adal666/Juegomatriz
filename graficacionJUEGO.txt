@@ -1,0 +1,116 @@
+﻿# Importamos las librerías necesarias
+import tkinter as tk
+import random
+
+# Definimos la clase CircularMatrixGame
+class CircularMatrixGame:
+    # El método __init__ se ejecuta al crear una instancia de la clase
+    def __init__(self, root):
+        # Guardamos una referencia al objeto Tk raíz
+        self.root = root
+        # Creamos una ventana secundaria para pedir las dimensiones al usuario
+        self.input_window = tk.Toplevel(self.root)
+        self.input_window.title("Enter dimensions")
+
+        # Agregamos etiquetas y campos de entrada para las dimensiones
+        tk.Label(self.input_window, text="Enter dimensions (max 20x20):").pack()
+        self.n_entry = tk.Entry(self.input_window)
+        self.n_entry.pack()
+        self.m_entry = tk.Entry(self.input_window)
+        self.m_entry.pack()
+
+        # Agregamos un botón para iniciar el juego
+        tk.Button(self.input_window, text="Start game", command=self.start_game).pack()
+
+    # Este método se ejecuta cuando el usuario hace clic en el botón "Start game"
+    def start_game(self):
+        # Intentamos obtener las dimensiones ingresadas por el usuario
+        try:
+            n = int(self.n_entry.get())
+            m = int(self.m_entry.get())
+            # Verificamos que las dimensiones sean válidas
+            if n < 1 or n > 20 or m < 1 or m > 20:
+                raise ValueError
+        except ValueError:
+            # Si las dimensiones no son válidas, mostramos un mensaje de error
+            tk.messagebox.showerror("Error", "Invalid dimensions")
+            return
+
+        # Si las dimensiones son válidas, cerramos la ventana de entrada
+        self.input_window.destroy()
+
+        # Guardamos las dimensiones y creamos la matriz inicial
+        self.n = n
+        self.m = m
+        self.matrix = [[0 for _ in range(m)] for _ in range(n)]
+        # Seleccionamos una posición inicial aleatoria
+        self.current_x = random.randint(0, n - 1)
+        self.current_y = random.randint(0, m - 1)
+        # Definimos las posibles direcciones de movimiento
+        self.directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+        # Definimos una paleta de colores para los diferentes valores de la matriz
+        self.color_palette = ["white", "lightblue", "blue", "darkblue", "purple", "magenta", "pink", "red", "orange", "yellow"]
+
+        # Creamos la interfaz gráfica del juego
+        self.create_ui()
+
+    # Este método crea la interfaz gráfica del juego
+    def create_ui(self):
+        # Creamos un canvas para dibujar la matriz
+        self.canvas = tk.Canvas(self.root, width=self.n * 50, height=self.m * 50)
+        self.canvas.pack()
+
+        # Actualizamos el canvas para mostrar la matriz inicial
+        self.update_canvas()
+
+        # Creamos un marco para los botones de dirección
+        self.menu = tk.Frame(self.root)
+        self.menu.pack(side=tk.RIGHT, padx=20)
+
+        # Agregamos botones para cada dirección de movimiento
+        for direction in ["Arriba", "Abajo", "Izquierda", "Derecha"]:
+            button = tk.Button(self.menu, text=direction, command=lambda dir=direction: (lambda: self.move(dir))())
+            button.pack()
+
+    # Este método se ejecuta cuando el usuario hace clic en uno de los botones de dirección
+    def move(self, direction):
+        # Obtenemos el índice de dirección correspondiente a la dirección seleccionada por el usuario
+        direction_index = {"Arriba": 3, "Abajo": 1, "Izquierda": 2, "Derecha": 0}[direction]
+        dx, dy = self.directions[direction_index]
+
+        # Actualizamos el valor de la celda actual y sus vecinos
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                x = (self.current_x + i) % self.n
+                y = (self.current_y + j) % self.m
+                self.matrix[x][y] = (self.matrix[x][y] + 1) % 10
+
+        # Movemos la posición actual a la siguiente celda en la dirección seleccionada por el usuario
+        self.current_x = (self.current_x + dx) % self.n
+        self.current_y = (self.current_y + dy) % self.m
+
+        # Actualizamos el canvas para mostrar los cambios en la matriz
+        self.update_canvas()
+
+    # Este método actualiza el canvas para mostrar los cambios en la matriz
+    def update_canvas(self):
+        # Borramos el contenido actual del canvas
+        self.canvas.delete("all")
+
+        # Dibujamos cada celda de la matriz en el canvas
+        for i in range(self.n):
+            for j in range(self.m):
+                value = self.matrix[i][j]
+                color = self.color_palette[value]
+                text_color = "white" if value >= 5 else "black"
+                self.canvas.create_rectangle(j * 50, i * 50, (j + 1) * 50, (i + 1) * 50, fill=color)
+                self.canvas.create_text(j * 50 + 25, i * 50 + 25, text=str(value), fill=text_color)
+
+# Creamos una instancia de Tk y una instancia de CircularMatrixGame
+root = tk.Tk()
+game = CircularMatrixGame(root)
+# Iniciamos el bucle principal de Tk
+root.mainloop()
+
+#Juego creado por Ricardo Romero
