@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Circular Matrix Game</title>
+</head>
+<body>
+  <h1>Circular Matrix Game</h1>
+  <p>Enter dimensions (max 15x15):</p>
+  <!-- Input fields to enter dimensions -->
+  <input type="number" id="n-input" min="1" max="15" value="5">
+  <input type="number" id="m-input" min="1" max="15" value="5">
+  <!-- Button to start the game -->
+  <button id="start-button">Start game</button>
+
+  <script>
+    // Define the CircularMatrixGame class
+    class CircularMatrixGame {
+      constructor(n, m) {
+        // Initialize game properties
+        this.n = n;
+        this.m = m;
+        this.matrix = Array.from({ length: n }, () => Array(m).fill(0));
+        this.currentX = Math.floor(Math.random() * n);
+        this.currentY = Math.floor(Math.random() * m);
+        this.directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+        this.colorPalette = ["white", "lightblue", "blue", "darkblue", "purple", "magenta", "pink", "red", "orange", "yellow"];
+
+        // Create the game UI
+        this.createUI();
+      }
+
+      // Create the user interface
+      createUI() {
+        // Create canvas element
+        this.canvas = document.createElement("canvas");
+        this.canvas.width = this.n * 50;
+        this.canvas.height = this.m * 50;
+        document.body.appendChild(this.canvas);
+
+        // Create buttons for movement directions
+        const directions = ["Arriba", "Abajo", "Izquierda", "Derecha"];
+        directions.forEach(direction => {
+          const button = document.createElement("button");
+          button.textContent = direction;
+          // Add event listener to buttons
+          button.addEventListener("click", () => this.move(direction));
+          document.body.appendChild(button);
+        });
+
+        // Update canvas to display initial game state
+        this.updateCanvas();
+      }
+
+      // Handle movement
+      move(direction) {
+        const directionIndex = { "Arriba": 3, "Abajo": 1, "Izquierda": 2, "Derecha": 0 }[direction];
+        const [dx, dy] = this.directions[directionIndex];
+
+        // Update current cell and neighbors
+        for (let i = -1; i <= 1; i++) {
+          for (let j = -1; j <= 1; j++) {
+            const x = (this.currentX + i + this.n) % this.n;
+            const y = (this.currentY + j + this.m) % this.m;
+            this.matrix[x][y] = (this.matrix[x][y] + 1) % 10;
+          }
+        }
+
+        // Move to the next cell
+        this.currentX = (this.currentX + dx + this.n) % this.n;
+        this.currentY = (this.currentY + dy + this.m) % this.m;
+
+        // Update canvas to reflect the changes
+        this.updateCanvas();
+      }
+
+      // Update the canvas to display the game state
+      updateCanvas() {
+        const ctx = this.canvas.getContext("2d");
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Loop through the matrix and draw cells
+        for (let i = 0; i < this.n; i++) {
+          for (let j = 0; j < this.m; j++) {
+            const value = this.matrix[i][j];
+            const color = this.colorPalette[value];
+            ctx.fillStyle = color;
+            ctx.fillRect(j * 50, i * 50, 50, 50);
+            ctx.fillStyle = value >= 5 ? "white" : "black";
+            ctx.fillText(value.toString(), j * 50 + 25, i * 50 + 25);
+          }
+        }
+      }
+    }
+
+    // Add event listener to the "Start game" button
+    document.getElementById("start-button").addEventListener("click", () => {
+      // Get dimensions from input fields
+      const nInput = document.getElementById("n-input");
+      const mInput = document.getElementById("m-input");
+      const n = parseInt(nInput.value);
+      const m = parseInt(mInput.value);
+
+      // Validate dimensions
+      if (isNaN(n) || isNaN(m) || n < 1 || n > 15 || m < 1 || m > 15) {
+        alert("Invalid dimensions");
+      } else {
+        // Create an instance of the game with the specified dimensions
+        const game = new CircularMatrixGame(n, m);
+      }
+    });
+  </script>
+</body>
+</html>
+
+codigo hecho por Ricardo Romero
